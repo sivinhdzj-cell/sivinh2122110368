@@ -33,6 +33,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
@@ -66,27 +67,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ---- 7. SAFE AUTO MIGRATE (Đã sửa để không gây Crash) ----
+// ---- 7. AUTO MIGRATE (ĐÃ FIX: KHÔNG GÂY SẬP APP) ----
 using (var scope = app.Services.CreateScope())
 {
     try 
     {
         var db = scope.ServiceProvider.GetRequiredService<CinemaDbContext>();
-        // Chỉ chạy migrate nếu có Connection String hợp lệ
-        if (!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection")))
-        {
-            await db.Database.MigrateAsync();
-            // await DataSeeder.SeedAsync(db); // Mở ra nếu bạn đã có file DataSeeder
-        }
+        // Chỉ chạy Migration nếu kết nối được. Nếu lỗi sẽ nhảy vào Catch.
+        await db.Database.MigrateAsync(); 
+        // await DataSeeder.SeedAsync(db); // Chỉ mở ra nếu bạn đã có class DataSeeder
     }
-    catch (Exception ex) 
+    catch (Exception ex)
     {
-        // Ghi lỗi ra log nhưng không làm sập App
-        Console.WriteLine($">>> Database Migration skipped or failed: {ex.Message}");
+        Console.WriteLine($">>> Database Migration skipped: {ex.Message}");
     }
 }
 
-// ---- 8. MIDDLEWARE ----
+// ---- 8. MIDDLEWARE PIPELINE ----
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
