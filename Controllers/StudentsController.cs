@@ -14,9 +14,9 @@ namespace sivinh_2122110368.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly CinemaDbContext _context;
 
-        public StudentsController(AppDbContext context)
+        public StudentsController(CinemaDbContext context)
         {
             _context = context;
         }
