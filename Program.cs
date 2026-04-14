@@ -33,9 +33,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
-builder.Services.AddAuthorization();
 
-// ---- 4. CONTROLLERS ----
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 // ---- 5. SWAGGER ----
@@ -49,21 +48,23 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
+<<<<<<< HEAD
         In = ParameterLocation.Header,
         Description = "Nhập: Bearer {your_token}"
+=======
+        In = ParameterLocation.Header
+>>>>>>> f90dc4ab11dc3a3c2c56ad4f422fa511fe23e539
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
             Array.Empty<string>()
         }
     });
 });
 
+<<<<<<< HEAD
 // ---- 6. CORS (FIX LỖI CORB TRÊN TRÌNH DUYỆT) ----
 builder.Services.AddCors(options =>
 {
@@ -71,13 +72,20 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader());
+=======
+// ---- 6. CORS ----
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+>>>>>>> f90dc4ab11dc3a3c2c56ad4f422fa511fe23e539
 });
 
 var app = builder.Build();
 
-// ---- 7. AUTO MIGRATE + SEED DATA ----
+// ---- 7. AUTO MIGRATE (ĐÃ FIX: KHÔNG GÂY SẬP APP) ----
 using (var scope = app.Services.CreateScope())
 {
+<<<<<<< HEAD
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<CinemaDbContext>();
@@ -87,6 +95,18 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Console.WriteLine($"Lỗi Seed Data: {ex.Message}");
+=======
+    try 
+    {
+        var db = scope.ServiceProvider.GetRequiredService<CinemaDbContext>();
+        // Chỉ chạy Migration nếu kết nối được. Nếu lỗi sẽ nhảy vào Catch.
+        await db.Database.MigrateAsync(); 
+        // await DataSeeder.SeedAsync(db); // Chỉ mở ra nếu bạn đã có class DataSeeder
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($">>> Database Migration skipped: {ex.Message}");
+>>>>>>> f90dc4ab11dc3a3c2c56ad4f422fa511fe23e539
     }
 }
 
@@ -97,7 +117,11 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CinemaMS API v1");
+<<<<<<< HEAD
     c.RoutePrefix = "swagger"; // Truy cập tại /swagger
+=======
+    c.RoutePrefix = "swagger"; 
+>>>>>>> f90dc4ab11dc3a3c2c56ad4f422fa511fe23e539
 });
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
