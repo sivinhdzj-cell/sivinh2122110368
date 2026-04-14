@@ -1,7 +1,3 @@
-// ============================================================
-// CINEMAMS - Program.cs (THAY TOÀN BỘ file Program.cs cũ)
-// ============================================================
-
 using System.Text;
 using sivinh_2122110368.Data;
 using sivinh_2122110368.Services;
@@ -18,7 +14,7 @@ builder.Services.AddDbContext<CinemaDbContext>(options =>
 
 // ---- 2. SERVICES ----
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<sivinh_2122110368.Services.IBookingService, sivinh_2122110368.Services.BookingService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 // ---- 3. JWT AUTH ----
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "CinemaMS_SuperSecret_Key_2025!";
@@ -42,18 +38,11 @@ builder.Services.AddAuthorization();
 // ---- 4. CONTROLLERS ----
 builder.Services.AddControllers();
 
-// ---- 5. SWAGGER với JWT support ----
+// ---- 5. SWAGGER ----
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "CinemaMS API",
-        Version = "v1",
-        Description = "Hệ thống Quản lý Bán Vé Xem Phim — CinemaMS"
-    });
-
-    // Thêm nút Authorize trong Swagger để nhập JWT token
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CinemaMS API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -61,9 +50,8 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Nhập token theo format: Bearer {your_token}"
+        Description = "Nhập: Bearer {your_token}"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -74,16 +62,15 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
-
-    // Group endpoints theo Tag (Controller name)
-    c.TagActionsBy(api => new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] });
 });
 
-// ---- 6. CORS (cho phép frontend kết nối) ----
+// ---- 6. CORS (FIX LỖI CORB TRÊN TRÌNH DUYỆT) ----
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
 });
 
 var app = builder.Build();
@@ -91,24 +78,40 @@ var app = builder.Build();
 // ---- 7. AUTO MIGRATE + SEED DATA ----
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CinemaDbContext>();
-    await db.Database.MigrateAsync(); // Tự migrate khi start
-    await DataSeeder.SeedAsync(db);   // Seed dữ liệu mẫu
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<CinemaDbContext>();
+        await db.Database.MigrateAsync();
+        await DataSeeder.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Lỗi Seed Data: {ex.Message}");
+    }
 }
 
 // ---- 8. MIDDLEWARE PIPELINE ----
+
+// Cấu hình Swagger cho cả môi trường Development và Production (nếu cần xem API)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CinemaMS API v1");
     c.RoutePrefix = "swagger"; // Truy cập tại /swagger
-    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
-    c.DefaultModelsExpandDepth(-1); // Ẩn schema models
 });
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+// app.UseHttpsRedirection(); // Tạm thời comment nếu bạn test local với HTTP để tránh lỗi SSL
 
-app.UseCors("AllowAll");
+// QUAN TRỌNG NHẤT: Thứ tự Middleware để fix lỗi CORB
+app.UseRouting(); // Thêm dòng này để định tuyến rõ ràng
+
+app.UseCors("AllowAll"); // Phải nằm SAU UseRouting và TRƯỚC Authentication
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

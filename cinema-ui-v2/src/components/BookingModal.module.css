@@ -1,0 +1,200 @@
+.backdrop {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.25s ease;
+}
+
+.modal {
+  width: 100%;
+  max-width: 560px;
+  background: #161b22;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  animation: slideUp 0.3s ease;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 24px;
+  background: #1c2128;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+}
+.poster {
+  width: 56px; height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.headerInfo { flex: 1; }
+.ratingBadge {
+  display: inline-block;
+  font-size: 10px; font-weight: 800;
+  color: #fff;
+  padding: 2px 8px; border-radius: 4px;
+  margin-bottom: 6px;
+}
+.movieTitle {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.movieMeta { font-size: 12.5px; color: var(--text-muted); }
+.closeBtn {
+  position: absolute; top: 18px; right: 18px;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.closeBtn:hover { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }
+
+/* Steps */
+.steps {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px 16px;
+  gap: 0;
+}
+.stepItem { display: flex; align-items: center; flex: 1; }
+.stepItem:last-child { flex: 0; }
+.stepDot {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.stepDotActive { background: rgba(225,29,72,0.15); color: #e11d48; border-color: rgba(225,29,72,0.4); }
+.stepDotDone   { background: #e11d48; color: #fff; border-color: #e11d48; }
+.stepLabel {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 8px;
+  transition: color 0.3s;
+  white-space: nowrap;
+}
+.stepLabelActive { color: var(--text-primary); }
+.stepLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  margin: 0 10px;
+  transition: background 0.3s;
+}
+.stepLineDone { background: rgba(225,29,72,0.4); }
+
+/* Body */
+.body { padding: 8px 24px 24px; }
+.bodyLabel {
+  font-size: 13px; font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* Date */
+.dateGrid { display: flex; gap: 8px; flex-wrap: wrap; }
+.dateBtn {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  cursor: pointer; transition: all 0.2s;
+}
+.dateBtnDay  { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 2px; }
+.dateBtnDate { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.dateBtnActive { border-color: #e11d48 !important; background: rgba(225,29,72,0.1) !important; }
+.dateBtnActive .dateBtnDay  { color: #e11d48; }
+.dateBtnActive .dateBtnDate { color: #e11d48; }
+.dateBtn:hover { border-color: var(--border-hover); }
+
+/* Time */
+.timeGrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.timeBtn {
+  padding: 14px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+.timeBtn:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.timeBtnActive { border-color: #e11d48 !important; background: rgba(225,29,72,0.12) !important; color: #e11d48 !important; }
+
+/* Format */
+.fmtGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fmtBtn {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  text-align: left; cursor: pointer; transition: all 0.2s;
+}
+.fmtBtn:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.fmtBtnActive { border-color: #e11d48 !important; background: rgba(225,29,72,0.1) !important; }
+.fmtName {
+  display: block;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 22px; letter-spacing: 1px;
+  color: var(--text-primary); margin-bottom: 4px;
+}
+.fmtBtnActive .fmtName { color: #e11d48; }
+.fmtDesc { font-size: 12px; color: var(--text-muted); }
+
+/* Footer */
+.footer {
+  display: flex; gap: 12px;
+  padding: 0 24px 24px;
+}
+.btnBack {
+  flex: 1; padding: 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  transition: all 0.2s;
+}
+.btnBack:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.btnNext {
+  flex: 2; padding: 13px;
+  border-radius: 10px;
+  border: none;
+  background: #e11d48;
+  color: #fff;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  box-shadow: 0 4px 18px rgba(225,29,72,0.35);
+  transition: all 0.2s;
+}
+.btnNext:hover:not(:disabled) { background: #be123c; box-shadow: 0 6px 24px rgba(225,29,72,0.45); }
+.btnNextDisabled { background: #30363d !important; color: var(--text-muted) !important; box-shadow: none !important; cursor: not-allowed !important; }
+
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }

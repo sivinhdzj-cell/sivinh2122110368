@@ -1,5 +1,88 @@
 {
   "Version": 1,
   "ManifestType": "Build",
-  "Endpoints": []
+  "Endpoints": [
+    {
+      "Route": "sivinh_2122110368.pzas0rygwa.styles.css",
+      "AssetFile": "sivinh_2122110368.styles.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1149"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"W23AUBCa2BDRIRJOSqmcViebycFHxXHs7gUcsAPiIN0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 12 Apr 2026 23:12:24 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "pzas0rygwa"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-W23AUBCa2BDRIRJOSqmcViebycFHxXHs7gUcsAPiIN0="
+        },
+        {
+          "Name": "label",
+          "Value": "sivinh_2122110368.styles.css"
+        }
+      ]
+    },
+    {
+      "Route": "sivinh_2122110368.styles.css",
+      "AssetFile": "sivinh_2122110368.styles.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1149"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"W23AUBCa2BDRIRJOSqmcViebycFHxXHs7gUcsAPiIN0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 12 Apr 2026 23:12:24 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-W23AUBCa2BDRIRJOSqmcViebycFHxXHs7gUcsAPiIN0="
+        }
+      ]
+    }
+  ]
 }

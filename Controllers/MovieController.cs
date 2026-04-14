@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using sivinh_2122110368.Data;
 using sivinh_2122110368.DTOs;
 using sivinh_2122110368.Models;
@@ -18,33 +19,38 @@ namespace sivinh_2122110368.Controllers
 
         // GET: api/movie
         [HttpGet]
-        public ActionResult<List<MovieDto>> GetAll()
+        public async Task<ActionResult<List<MovieDto>>> GetAll()
         {
-            var movies = _context.Movies
+            // Sử dụng AsNoTracking để tăng hiệu suất và lấy dữ liệu mới nhất
+            var movies = await _context.Movies
+                .AsNoTracking()
                 .Select(m => new MovieDto
                 {
-                    MovieId = m.MovieId,      // MovieId thay cho Id
+                    MovieId = m.MovieId,
                     Title = m.Title,
-                    DurationMin = m.DurationMin, // DurationMin thay cho Duration
-                    Description = m.Description
-                }).ToList();
+                    DurationMin = m.DurationMin,
+                    Description = m.Description,
+                    PosterUrl = m.PosterUrl // ĐÃ THÊM DÒNG NÀY ĐỂ FIX LỖI NULL
+                }).ToListAsync();
 
             return Ok(movies);
         }
 
         // GET: api/movie/{id}
         [HttpGet("{id}")]
-        public ActionResult<MovieDto> GetById(int id)
+        public async Task<ActionResult<MovieDto>> GetById(int id)
         {
-            var movie = _context.Movies
+            var movie = await _context.Movies
+                .AsNoTracking()
                 .Where(m => m.MovieId == id)
                 .Select(m => new MovieDto
                 {
                     MovieId = m.MovieId,
                     Title = m.Title,
                     DurationMin = m.DurationMin,
-                    Description = m.Description
-                }).FirstOrDefault();
+                    Description = m.Description,
+                    PosterUrl = m.PosterUrl // ĐÃ THÊM DÒNG NÀY
+                }).FirstOrDefaultAsync();
 
             if (movie == null) return NotFound();
             return Ok(movie);
@@ -52,31 +58,33 @@ namespace sivinh_2122110368.Controllers
 
         // POST: api/movie
         [HttpPost]
-        public ActionResult<MovieDto> Create(MovieDto dto)
+        public async Task<ActionResult<MovieDto>> Create(MovieDto dto)
         {
             var movie = new Movie
             {
                 Title = dto.Title,
                 DurationMin = dto.DurationMin,
-                Description = dto.Description
+                Description = dto.Description,
+                PosterUrl = dto.PosterUrl, // Cho phép lưu link ảnh khi tạo mới
+                Status = "ACTIVE" // Mặc định trạng thái để phim hiện lên Web
             };
 
             _context.Movies.Add(movie);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             dto.MovieId = movie.MovieId;
-            return CreatedAtAction(nameof(GetById), new { id = dto.MovieId}, dto);
+            return CreatedAtAction(nameof(GetById), new { id = dto.MovieId }, dto);
         }
 
         // DELETE: api/movie/{id}
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var movie = _context.Movies.Find(id);
+            var movie = await _context.Movies.FindAsync(id);
             if (movie == null) return NotFound();
 
             _context.Movies.Remove(movie);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return NoContent();
         }
     }

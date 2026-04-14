@@ -1,0 +1,23 @@
+/* Card ch?a ?nh */
+.posterContainer {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background-color: #2a2a2a; /* Màu n?n xám nh? thay vì ?en thui */
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+    /* C?u hình ?nh */
+    .posterContainer img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* ??m b?o ?nh l?p ??y khung */
+        display: block;
+    }
+
+        /* Hi?u ?ng khi ?nh b? l?i (Broken Image) */
+        .posterContainer img:not([src]),
+        .posterContainer img[src=""] {
+            visibility: hidden;
+        }

@@ -1,0 +1,240 @@
+.hero {
+  position: relative;
+  height: 90vh;
+  min-height: 600px;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+/* Background images */
+.bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 20%;
+  transition: opacity 0.9s ease;
+  filter: brightness(0.32) saturate(1.15);
+}
+
+/* Overlay layers */
+.overlayLeft {
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.1) 100%);
+}
+.overlayBottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(to top, #0d1117 0%, transparent 100%);
+}
+.overlayVignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, transparent 30%, rgba(0,0,0,0.35) 100%);
+}
+
+/* Content */
+.content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 8vw 160px;
+  max-width: 800px;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.contentFade { opacity: 0; transform: translateY(14px); }
+
+.badges {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+  animation: fadeUp 0.5s ease both;
+}
+.badgeLive {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: #e11d48;
+  background: rgba(225,29,72,0.12);
+  border: 1px solid rgba(225,29,72,0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+.badgeRating {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 1.0;
+  color: #fff;
+  margin-bottom: 16px;
+  letter-spacing: 1.5px;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  animation: fadeUp 0.5s 0.1s ease both;
+}
+
+.meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 14px;
+  animation: fadeUp 0.5s 0.15s ease both;
+}
+.score { color: #f59e0b; font-weight: 700; }
+.sep   { color: rgba(255,255,255,0.25); }
+
+.desc {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.55);
+  max-width: 520px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.5s 0.2s ease both;
+}
+
+.formats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  animation: fadeUp 0.5s 0.25s ease both;
+}
+.format {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.ctas {
+  display: flex;
+  gap: 14px;
+  animation: fadeUp 0.5s 0.3s ease both;
+}
+.btnBook {
+  padding: 14px 32px;
+  border-radius: 10px;
+  border: none;
+  background: #e11d48;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  box-shadow: 0 6px 28px rgba(225,29,72,0.4);
+  transition: all 0.25s;
+}
+.btnBook:hover {
+  background: #be123c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 36px rgba(225,29,72,0.5);
+}
+.btnTrailer {
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  transition: all 0.25s;
+}
+.btnTrailer:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.35); }
+
+/* Slide number */
+.slideNum {
+  position: absolute;
+  right: 5vw;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.slideNumCur   { font-family: 'Bebas Neue', cursive; font-size: 36px; color: #fff; line-height: 1; }
+.slideNumSep   { width: 1px; height: 28px; background: rgba(255,255,255,0.2); }
+.slideNumTotal { font-family: 'Bebas Neue', cursive; font-size: 22px; color: rgba(255,255,255,0.35); line-height: 1; }
+
+/* Dots */
+.dots {
+  position: absolute;
+  bottom: 155px;
+  left: 8vw;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.35s;
+  padding: 0;
+}
+.dotActive { width: 28px; background: #e11d48; }
+
+/* Thumbnail strip */
+.strip {
+  position: absolute;
+  bottom: 32px;
+  left: 8vw;
+  z-index: 3;
+  display: flex;
+  gap: 12px;
+}
+.thumb {
+  position: relative;
+  width: 100px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumbOverlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.4);
+  transition: background 0.3s;
+}
+.thumbTitle {
+  position: absolute;
+  bottom: 4px; left: 6px; right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.thumbActive {
+  border-color: #e11d48;
+  box-shadow: 0 0 16px rgba(225,29,72,0.4);
+}
+.thumbActive .thumbOverlay { background: rgba(0,0,0,0.15); }
+.thumb:hover .thumbOverlay { background: rgba(0,0,0,0.2); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
