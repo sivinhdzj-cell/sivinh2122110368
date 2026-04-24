@@ -26,4 +26,23 @@ export const bookingsAPI = {
       throw error;
     }
   },
+  
+  async confirmPayment(code) {
+    const response = await client.post(`/booking/confirm-payment/${code}`);
+    return response.data;
+  },
+
+  async confirmMomo(payload) {
+    const response = await client.post("/booking/confirm-momo", payload);
+    return response.data?.data ?? response.data;
+  },
+  
+  async getAll() {
+    const response = await client.get("/booking/all");
+    return response.data?.data ?? response.data ?? [];
+  },
+
+  async delete(id) {
+    await client.delete(`/booking/${id}`);
+  }
 };

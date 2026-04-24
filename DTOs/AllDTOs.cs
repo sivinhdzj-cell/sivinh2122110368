@@ -150,6 +150,7 @@ namespace sivinh_2122110368.DTOs
         public string MovieTitle { get; set; } = "";
         public DateTime StartTime { get; set; }
         public string RoomName { get; set; } = "";
+        public int MaxColumn { get; set; }
         public List<SeatStatusDto> Seats { get; set; } = new();
     }
 
@@ -179,6 +180,7 @@ namespace sivinh_2122110368.DTOs
         public decimal DiscountAmount { get; set; }
         public string PaymentStatus { get; set; } = "";
         public string PaymentMethod { get; set; } = "";
+        public string? PayUrl { get; set; }
         public List<TicketDto> Tickets { get; set; } = new();
         public DateTime CreatedAt { get; set; }
     }
@@ -199,6 +201,7 @@ namespace sivinh_2122110368.DTOs
         public DateTime ShowtimeStart { get; set; }
         public decimal TotalAmount { get; set; }
         public string PaymentStatus { get; set; } = "";
+        public string UserEmail { get; set; } = "";
         public DateTime CreatedAt { get; set; }
     }
 

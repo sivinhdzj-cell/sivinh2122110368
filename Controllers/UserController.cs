@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sivinh_2122110368.Data;
 using sivinh_2122110368.Models;
@@ -34,22 +34,32 @@ namespace sivinh_2122110368.Controllers
 
         // POST: api/user
         [HttpPost]
-        public IActionResult Create(User user)
+        public IActionResult Create([FromBody] User user)
         {
             _context.Users.Add(user);
             _context.SaveChanges();
             return Ok(user);
         }
 
-        // PUT: api/user/1
+        // PUT: api/user/1  (update isActive)
         [HttpPut("{id}")]
-        public IActionResult Update(int id, User user)
+        public IActionResult Update(int id, [FromBody] ToggleActiveDto dto)
         {
-            if (id != user.UserId) return BadRequest();
-
-            _context.Entry(user).State = EntityState.Modified;
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound();
+            user.IsActive = dto.IsActive;
             _context.SaveChanges();
+            return Ok(user);
+        }
 
+        // PUT: api/user/1/role
+        [HttpPut("{id}/role")]
+        public IActionResult UpdateRole(int id, [FromBody] UpdateRoleDto dto)
+        {
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound();
+            user.Role = dto.Role;
+            _context.SaveChanges();
             return Ok(user);
         }
 
@@ -59,11 +69,19 @@ namespace sivinh_2122110368.Controllers
         {
             var user = _context.Users.Find(id);
             if (user == null) return NotFound();
-
             _context.Users.Remove(user);
             _context.SaveChanges();
-
             return NoContent();
         }
+    }
+
+    public class UpdateRoleDto
+    {
+        public string Role { get; set; } = "";
+    }
+
+    public class ToggleActiveDto
+    {
+        public bool IsActive { get; set; }
     }
 }

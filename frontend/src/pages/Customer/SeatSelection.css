@@ -1,0 +1,193 @@
+/* SeatSelection MoMo-style v3 - Restored Structure */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ss-page {
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 150px; /* Tăng padding để không bị che nút */
+}
+
+/* HEADER */
+.ss-header {
+  background: #fff;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a2e;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.ss-back {
+  font-size: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+  color: #1a1a2e;
+}
+
+/* SEAT LEGEND */
+.ss-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+}
+.ss-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+}
+.ss-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+.ss-dot.avail { background: var(--status-available, #22c55e); }
+.ss-dot.hold { background: var(--status-hold, #eab308); }
+.ss-dot.booked { background: var(--status-booked, #ef4444); }
+.ss-dot.unavailable { background: var(--status-unavailable, #9ca3af); }
+.ss-dot.selected { background: var(--momo-pink, #d82d8b); }
+
+/* SCREEN */
+.ss-screen-wrap {
+  text-align: center;
+  padding: 20px 0 10px;
+  background: #fff;
+}
+.ss-screen {
+  width: 80%;
+  max-width: 400px;
+  height: 12px;
+  margin: 0 auto;
+  background: var(--momo-gradient);
+  border-radius: 100px;
+  box-shadow: 0 5px 15px rgba(216,45,139,0.2);
+}
+.ss-screen-text {
+  font-size: 10px;
+  color: #999;
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+/* SEAT GRID */
+.ss-grid {
+  padding: 16px;
+  background: #fff;
+  overflow-x: auto;
+  text-align: center;
+}
+.ss-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.ss-row-label {
+  width: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
+}
+
+/* SEAT STYLES */
+.ss-seat {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  padding: 0;
+}
+.ss-seat.avail {
+  background: #fff;
+  border: 1px solid var(--status-available);
+  color: var(--status-available);
+}
+.ss-seat.avail:hover { background: rgba(34, 197, 94, 0.05); }
+
+.ss-seat.hold {
+  background: var(--status-hold);
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.ss-seat.booked {
+  background: var(--status-booked);
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.ss-seat.selected {
+  background: var(--momo-pink);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(216,45,139,0.3);
+  transform: scale(1.1);
+}
+
+.ss-seat.unavailable {
+  background: var(--status-unavailable);
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* BOTTOM SHEET */
+.ss-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  padding: 16px 20px 24px;
+  z-index: 1000;
+}
+
+/* BUTTONS */
+.ss-btn {
+  background: #e0e0e0;
+  color: #999;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: not-allowed;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.ss-btn.primary:not(:disabled) {
+  background: var(--momo-gradient);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(216,45,139,0.3);
+}
+
+.momo-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px); z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+}
+.momo-modal-box {
+  background: #fff; border-radius: 24px; width: 90%; max-width: 400px;
+  overflow: hidden;
+}

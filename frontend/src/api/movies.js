@@ -28,4 +28,19 @@ export const moviesAPI = {
       throw error;
     }
   },
+
+  async create(data) {
+    const response = await client.post("/movie", data);
+    return response.data?.data ?? response.data;
+  },
+
+  async update(id, data) {
+    const response = await client.put(`/movie/${id}`, data);
+    return response.data?.data ?? response.data;
+  },
+
+  async delete(id) {
+    const response = await client.delete(`/movie/${id}`);
+    return response.data?.data ?? response.data;
+  }
 };

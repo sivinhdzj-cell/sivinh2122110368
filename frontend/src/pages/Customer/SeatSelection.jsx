@@ -1,42 +1,53 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Card, Spin, Typography, Tag, Button, Row, Col, message } from "antd";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, Spin, Typography, Tag, Button, Row, Col, message, Space, Divider, Alert } from "antd";
 import { moviesAPI } from "../../api/movies";
-import { bookingsAPI } from "../../api/bookings";
+import { ArrowRightOutlined, InfoCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import "../../styles.css";
 
-const seatColor = {
-  AVAILABLE: "#52c41a",
-  HOLD: "#faad14",
-  BOOKED: "#ff4d4f",
-  UNAVAILABLE: "#8c8c8c",
+const { Title, Text } = Typography;
+
+// MÀU SẮC CHUẨN MOMO THEO YÊU CẦU
+const SEAT_COLORS = {
+  AVAILABLE: "#52c41a", // Xanh lá
+  HOLD: "#faad14",      // Vàng
+  BOOKED: "#ff4d4f",    // Đỏ
+  UNAVAILABLE: "#8c8c8c" // Xám
 };
 
 export default function SeatSelection() {
   const { showtimeId } = useParams();
+  const navigate = useNavigate();
   const routeShowtimeId = Number(showtimeId || 0);
   const [seatMap, setSeatMap] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(600); // 10 phút = 600 giây
+
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      message.error("Hết thời gian giữ ghế. Vui lòng chọn lại!");
+      navigate("/movies");
+      return;
+    }
+    const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, navigate]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   useEffect(() => {
     const loadSeatMap = async () => {
       try {
-        if (!routeShowtimeId) {
-          message.warning("Thiếu showtimeId trong URL");
-          return;
-        }
+        if (!routeShowtimeId) return;
         const data = await moviesAPI.getSeatsByShowtime(routeShowtimeId);
         setSeatMap(data);
       } catch (error) {
-        const status = error?.response?.status;
-        if (status === 401) {
-          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-        } else if (status === 404) {
-          message.error("Suất chiếu không tồn tại hoặc chưa được mở bán.");
-        } else {
-          message.error(error?.response?.data?.message || "Không thể tải sơ đồ ghế");
-        }
+        message.error("Không thể tải sơ đồ ghế.");
       } finally {
         setLoading(false);
       }
@@ -44,97 +55,141 @@ export default function SeatSelection() {
     loadSeatMap();
   }, [routeShowtimeId]);
 
-  const availableSeats = useMemo(
-    () => (seatMap?.seats || []).filter((x) => x.status === "AVAILABLE"),
-    [seatMap]
-  );
-
   const total = useMemo(() => selectedSeats.reduce((sum, s) => sum + (s.price || 0), 0), [selectedSeats]);
 
   const toggleSeat = (seat) => {
     if (seat.status !== "AVAILABLE") return;
     setSelectedSeats((prev) => {
       const exists = prev.some((x) => x.seatId === seat.seatId);
+      if (!exists && prev.length >= 8) {
+        message.warning("Bạn chỉ được chọn tối đa 8 ghế");
+        return prev;
+      }
       return exists ? prev.filter((x) => x.seatId !== seat.seatId) : [...prev, seat];
     });
   };
 
-  const createBooking = async () => {
-    if (!routeShowtimeId || selectedSeats.length === 0) {
-      message.warning("Vui lòng chọn ít nhất 1 ghế");
+  const goToCombo = () => {
+    if (selectedSeats.length === 0) {
+      message.warning("Vui lòng chọn ghế trước khi tiếp tục");
       return;
     }
-    try {
-      setSubmitting(true);
-      const payload = {
-        showtimeId: routeShowtimeId,
-        seatIds: selectedSeats.map((x) => x.seatId),
-        paymentMethod: "CASH",
-      };
-      const result = await bookingsAPI.create(payload);
-      message.success(`Đặt vé thành công! Mã booking: ${result.bookingCode || "N/A"}`);
-      const refreshed = await moviesAPI.getSeatsByShowtime(routeShowtimeId);
-      setSeatMap(refreshed);
-      setSelectedSeats([]);
-    } catch (error) {
-      message.error(error?.response?.data?.message || "Đặt vé thất bại");
-    } finally {
-      setSubmitting(false);
-    }
+    navigate("/combo", { state: { selectedSeats, showtimeId: routeShowtimeId, totalPrice: total, timeLeft } });
   };
 
-  if (loading) return <Spin fullscreen />;
+  if (loading) return <div className="center-page"><Spin size="large" /></div>;
 
   return (
-    <Row gutter={[20, 20]}>
-      <Col xs={24} lg={16}>
-        <Card title={`Sơ đồ ghế suất chiếu #${routeShowtimeId}`}>
-          {!seatMap ? (
-            <Typography.Text type="secondary">Không có dữ liệu sơ đồ ghế.</Typography.Text>
-          ) : (
-            <>
-              <div className="seat-grid">
-                {seatMap.seats?.map((seat) => {
-                  const active = selectedSeats.some((x) => x.seatId === seat.seatId);
-                  const bg = active ? "#722ed1" : seatColor[seat.status] || "#8c8c8c";
-                  return (
-                    <button
-                      key={seat.seatId}
-                      className={`seat-btn ${active ? "active" : ""}`}
-                      style={{ background: bg }}
-                      onClick={() => toggleSeat(seat)}
-                      disabled={seat.status !== "AVAILABLE"}
-                    >
-                      {seat.rowLabel}
-                      {seat.colNumber}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ marginTop: 16 }}>
-                <Tag color="green">AVAILABLE - Ghế trống</Tag>
-                <Tag color="gold">HOLD - Đang giữ</Tag>
-                <Tag color="red">BOOKED - Đã đặt</Tag>
-                <Tag color="default">UNAVAILABLE - Không khả dụng</Tag>
-                <Tag color="purple">Đang chọn</Tag>
-              </div>
-            </>
-          )}
-        </Card>
-      </Col>
+    <div className="animate-momo" style={{ maxWidth: 1100, margin: "20px auto", padding: "0 16px" }}>
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={16}>
+          <div className="booking-step-card" style={{ textAlign: "center" }}>
+            <Alert 
+              title={
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text strong>Ghế của bạn sẽ được giữ trong:</Text>
+                  <Text strong style={{ color: timeLeft < 120 ? "#ff4d4f" : "var(--momo-pink)", fontSize: 18 }}>
+                    {formatTime(timeLeft)}
+                  </Text>
+                </div>
+              }
+              type={timeLeft < 120 ? "error" : "warning"}
+              showIcon 
+              icon={<ClockCircleOutlined style={{ color: timeLeft < 120 ? "#ff4d4f" : "var(--momo-pink)" }} />}
+              style={{ marginBottom: 32, borderRadius: 16, border: 'none', background: timeLeft < 120 ? 'rgba(255, 77, 79, 0.1)' : '#fff9fb' }}
+            />
+            
+            <div style={{ 
+              width: "80%", height: 8, background: "#ccc", margin: "0 auto 50px", 
+              borderRadius: 10, position: "relative", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" 
+            }}>
+              <span style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", fontSize: 13, color: "#888", fontWeight: 800, letterSpacing: 2 }}>MÀN HÌNH</span>
+            </div>
 
-      <Col xs={24} lg={8}>
-        <Card title="Thông tin đặt vé">
-          <Typography.Paragraph>Số ghế khả dụng: {availableSeats.length}</Typography.Paragraph>
-          <Typography.Paragraph>
-            Ghế đã chọn: {selectedSeats.map((s) => `${s.rowLabel}${s.colNumber}`).join(", ") || "Chưa chọn"}
-          </Typography.Paragraph>
-          <Typography.Title level={4}>Tổng tiền: {total.toLocaleString("vi-VN")} đ</Typography.Title>
-          <Button type="primary" block loading={submitting} onClick={createBooking}>
-            Xác nhận đặt vé
-          </Button>
-        </Card>
-      </Col>
-    </Row>
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: `repeat(${seatMap?.maxColumn || 10}, minmax(30px, 1fr))`, 
+              gap: "10px", 
+              justifyContent: "center",
+              marginBottom: 40
+            }}>
+              {seatMap?.seats?.map((seat) => {
+                const isSelected = selectedSeats.some((x) => x.seatId === seat.seatId);
+                const status = seat.status; // AVAILABLE, HOLD, BOOKED, UNAVAILABLE
+                const bgColor = isSelected ? "#d82d8b" : SEAT_COLORS[status] || "#8c8c8c";
+                
+                return (
+                  <div
+                    key={seat.seatId}
+                    className={`seat-item`}
+                    style={{ 
+                      background: bgColor, 
+                      color: isSelected || status === 'BOOKED' ? "#fff" : "#333",
+                      borderColor: isSelected ? "#d82d8b" : "#ddd",
+                      opacity: status === 'UNAVAILABLE' ? 0.4 : 1,
+                      cursor: status === 'AVAILABLE' ? 'pointer' : 'not-allowed'
+                    }}
+                    onClick={() => toggleSeat(seat)}
+                  >
+                    {seat.rowLabel}{seat.colNumber}
+                  </div>
+                );
+              })}
+            </div>
+
+            <Divider />
+            
+            <Space size={24} wrap justify="center" style={{ background: "#f9f9f9", padding: "16px 32px", borderRadius: 16 }}>
+              <Space><div className="seat-item" style={{ background: SEAT_COLORS.AVAILABLE, cursor: "default" }} /> <Text strong>Trống</Text></Space>
+              <Space><div className="seat-item" style={{ background: SEAT_COLORS.HOLD, cursor: "default" }} /> <Text strong>Đang giữ</Text></Space>
+              <Space><div className="seat-item" style={{ background: SEAT_COLORS.BOOKED, cursor: "default" }} /> <Text strong>Đã đặt</Text></Space>
+              <Space><div className="seat-item" style={{ background: SEAT_COLORS.UNAVAILABLE, cursor: "default" }} /> <Text strong>Hỏng/Bảo trì</Text></Space>
+              <Space><div className="seat-item" style={{ background: "#d82d8b", cursor: "default" }} /> <Text strong>Bạn chọn</Text></Space>
+            </Space>
+          </div>
+        </Col>
+
+        <Col xs={24} lg={8}>
+          <div className="booking-step-card">
+            <Title level={4} style={{ marginBottom: 20 }}>Tóm tắt đơn hàng</Title>
+            <Space direction="vertical" style={{ width: "100%" }} size={16}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <Text type="secondary">Số ghế ({selectedSeats.length})</Text>
+                <Text strong style={{ color: "var(--momo-pink)" }}>
+                  {selectedSeats.map(s => `${s.rowLabel}${s.colNumber}`).join(", ") || "Chưa chọn"}
+                </Text>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <Text type="secondary">Tạm tính</Text>
+                <Text strong style={{ color: "var(--momo-pink)", fontSize: 22 }}>{total.toLocaleString()} đ</Text>
+              </div>
+              
+              <Divider style={{ margin: "12px 0" }} />
+
+              <div style={{ background: "var(--momo-pink-light)", padding: 14, borderRadius: 14 }}>
+                <Space align="start">
+                  <InfoCircleOutlined style={{ color: "var(--momo-pink)", marginTop: 4 }} />
+                  <Text style={{ fontSize: 13, color: "var(--momo-pink)", fontWeight: 500 }}>
+                    Vui lòng hoàn tất đặt vé trong thời gian giữ ghế để tránh mất chỗ.
+                  </Text>
+                </Space>
+              </div>
+
+              <Button 
+                type="primary" 
+                block 
+                size="large" 
+                className="btn-momo" 
+                icon={<ArrowRightOutlined />}
+                onClick={goToCombo}
+                style={{ marginTop: 12, height: 56, fontSize: 18 }}
+              >
+                TIẾP TỤC
+              </Button>
+            </Space>
+          </div>
+        </Col>
+      </Row>
+    </div>
   );
 }

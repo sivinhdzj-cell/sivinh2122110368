@@ -6,7 +6,8 @@ export default function ProtectedRoute({ children, roles = [] }) {
   const role = localStorage.getItem("role");
 
   if (!token) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    const isAdminPath = location.pathname.startsWith("/admin");
+    return <Navigate to={isAdminPath ? "/admin/login" : "/login"} replace state={{ from: location }} />;
   }
 
   if (roles.length > 0 && !roles.includes(role)) {

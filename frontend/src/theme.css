@@ -1,60 +1,188 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --brand-950: #0f0f10;
-  --brand-900: #1a1a1a;
-  --brand-800: #3a0c0c;
-  --brand-700: #5e1212;
-  --brand-600: #8b1d1d;
-  --brand-500: #c92a2a;
+  --admin-bg: #0f172a;
+  /* Navy Blue cao cấp, dễ nhìn hơn đen */
+  --admin-card-bg: rgba(30, 41, 59, 0.7);
+  --admin-border: rgba(255, 255, 255, 0.1);
+  --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  --sidebar-width: 280px;
+  --text-main: #f8fafc;
+  --text-muted: #cbd5e1;
+  /* Sáng hơn để dễ đọc */
+  --accent-pink: #d82d8b;
 }
 
 body {
-  background: #111213;
+  font-family: 'Outfit', sans-serif !important;
+  background-color: var(--admin-bg);
+  color: var(--text-main);
+  margin: 0;
 }
 
-.customer-header,
-.app-header {
-  background: linear-gradient(90deg, var(--brand-900), var(--brand-600)) !important;
+/* 2026 Dark Luxury Layout */
+.admin-layout-wrapper {
+  background: #020617 !important;
+  /* Nền tối đồng nhất */
+  background-image:
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%) !important;
+  min-height: 100vh;
 }
 
-.admin-sider {
-  background: linear-gradient(180deg, var(--brand-950), var(--brand-700)) !important;
+.admin-sider-2026 {
+  background: rgba(15, 23, 42, 0.8) !important;
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--admin-border) !important;
+  padding: 24px 16px;
 }
 
-.admin-sider .ant-layout-sider-children,
-.admin-sider .ant-menu-dark {
+.admin-header-2026 {
+  background: rgba(15, 23, 42, 0.4) !important;
+  backdrop-filter: blur(10px);
+  padding: 0 32px !important;
+  height: 80px !important;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+/* Nav Items Improvement */
+.nav-item-2026 {
+  margin: 6px 0 !important;
+  border-radius: 14px !important;
+  height: 50px !important;
+  color: var(--text-muted) !important;
+  font-weight: 500 !important;
+}
+
+.nav-item-2026 .anticon {
+  font-size: 18px !important;
+}
+
+.nav-item-2026:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+.nav-item-selected-2026 {
+  background: var(--primary-gradient) !important;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3) !important;
+  color: #fff !important;
+}
+
+/* Glass Cards 2026 */
+.stats-card-2026 {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--admin-border);
+  backdrop-filter: blur(16px);
+  border-radius: 28px;
+  padding: 28px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stats-card-2026:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Modern Table 2026 */
+.modern-table .ant-table {
   background: transparent !important;
 }
 
-.admin-header {
-  background: #171718 !important;
-  color: #f5f5f5 !important;
+.modern-table .ant-table-thead>tr>th {
+  background: rgba(15, 23, 42, 0.5) !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  font-weight: 700 !important;
 }
 
-.admin-header .ant-typography {
-  color: #f5f5f5 !important;
+.modern-table .ant-table-tbody>tr>td {
+  border-bottom: 1px solid var(--admin-border) !important;
+  padding: 20px 16px !important;
+  color: #e2e8f0 !important;
 }
 
-.ant-btn-primary {
-  background: var(--brand-600) !important;
-  border-color: var(--brand-600) !important;
+.modern-table .ant-table-tbody>tr:hover>td {
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
-.ant-btn-primary:hover,
-.ant-btn-primary:focus {
-  background: var(--brand-500) !important;
-  border-color: var(--brand-500) !important;
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.ant-btn-primary:active {
-  background: var(--brand-700) !important;
-  border-color: var(--brand-700) !important;
+.animate-fade {
+  animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.ant-menu-dark.ant-menu-horizontal > .ant-menu-item-selected::after,
-.ant-menu-dark.ant-menu-horizontal > .ant-menu-submenu-selected::after {
-  border-bottom-color: #ffd8d8 !important;
+/* Force Light Text for Admin */
+.admin-layout-wrapper .ant-typography,
+.admin-layout-wrapper h1,
+.admin-layout-wrapper h2,
+.admin-layout-wrapper h3,
+.admin-layout-wrapper h4 {
+  color: #f8fafc !important;
 }
 
-.ant-card {
-  border: 1px solid #252526;
+.admin-layout-wrapper .ant-typography-secondary {
+  color: var(--text-muted) !important;
+}
+
+.admin-layout-wrapper .ant-table-placeholder .ant-empty-description {
+  color: var(--text-muted) !important;
+}
+
+.admin-layout-wrapper .ant-breadcrumb li a,
+.admin-layout-wrapper .ant-breadcrumb li .ant-breadcrumb-separator {
+  color: var(--text-muted) !important;
+}
+
+/* Force Dark Navy Cards & Tables */
+.admin-layout-wrapper .ant-card {
+  background: var(--admin-card-bg) !important;
+  border: 1px solid var(--admin-border) !important;
+  backdrop-filter: blur(16px);
+  border-radius: 24px !important;
+}
+
+.admin-layout-wrapper .ant-card-head {
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-layout-wrapper .ant-card-head-title {
+  color: #fff !important;
+}
+
+.admin-layout-wrapper .ant-table {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+.admin-layout-wrapper .ant-table-thead>tr>th {
+  background: rgba(15, 23, 42, 0.5) !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-layout-wrapper .ant-table-tbody>tr>td {
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-layout-wrapper .ant-table-tbody>tr:hover>td {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.admin-layout-wrapper .ant-empty-description {
+  color: var(--text-muted) !important;
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sivinh_2122110368.Data;
 using sivinh_2122110368.Models;
@@ -27,7 +27,7 @@ namespace sivinh_2122110368.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(Cinema obj)
+        public IActionResult Create([FromBody] Cinema obj)
         {
             _context.Cinemas.Add(obj);
             _context.SaveChanges();
@@ -35,12 +35,15 @@ namespace sivinh_2122110368.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, Cinema obj)
+        public IActionResult Update(int id, [FromBody] Cinema obj)
         {
-            if (id != obj.CinemaId) return BadRequest();
-            _context.Entry(obj).State = EntityState.Modified;
+            var existing = _context.Cinemas.Find(id);
+            if (existing == null) return NotFound();
+            existing.Name = obj.Name ?? existing.Name;
+            existing.Address = obj.Address ?? existing.Address;
+            _context.Entry(existing).State = EntityState.Modified;
             _context.SaveChanges();
-            return Ok(obj);
+            return Ok(existing);
         }
 
         [HttpDelete("{id}")]

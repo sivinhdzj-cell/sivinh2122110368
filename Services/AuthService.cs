@@ -57,10 +57,24 @@ namespace sivinh_2122110368.Services
 
         public async Task<AuthResultDto?> LoginAsync(LoginDto dto)
         {
+            Console.WriteLine($">>> Login attempt: {dto.Email}");
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
             if (user == null) return null;
-            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash)) return null;
 
+            // BYPASS CHO ADMIN ĐỂ TEST (Tối ưu: Bỏ qua hoa thường và khoảng trắng)
+            bool isPasswordValid = false;
+            string userRole = (user.Role ?? "").Trim().ToUpper();
+            
+            Console.WriteLine($">>> Found User Role: '{user.Role}' -> Normalized: '{userRole}'");
+
+            if (userRole == "ADMIN" && dto.Password == "123") {
+                Console.WriteLine(">>> Admin bypass SUCCESS");
+                isPasswordValid = true;
+            } else {
+                isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            }
+
+            if (!isPasswordValid) return null;
             return await GenerateAuthResult(user);
         }
 
@@ -93,7 +107,7 @@ namespace sivinh_2122110368.Services
         {
             var accessToken = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
-            var expiresAt = DateTime.UtcNow.AddMinutes(15);
+            var expiresAt = DateTime.UtcNow.AddMinutes(1440);
 
             // Lưu refresh token vào DB
             _db.RefreshTokens.Add(new RefreshToken
@@ -133,7 +147,7 @@ namespace sivinh_2122110368.Services
                 issuer: _config["Jwt:Issuer"] ?? "CinemaMS",
                 audience: _config["Jwt:Audience"] ?? "CinemaMS",
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(1440),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
             );
 

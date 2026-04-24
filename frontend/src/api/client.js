@@ -93,7 +93,8 @@ client.interceptors.response.use(
 
 export async function getWithFallback(paths, config) {
   let lastError;
-  for (const path of paths) {
+  const pathArray = typeof paths === "string" ? [paths] : paths;
+  for (const path of pathArray) {
     try {
       return await client.get(path, config);
     } catch (error) {

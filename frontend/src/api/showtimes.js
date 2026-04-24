@@ -1,19 +1,35 @@
-import client, { getWithFallback } from "./client";
+import client from "./client";
 
 export const showtimesAPI = {
-  async getAll() {
-    return (await getWithFallback("/showtime")) || [];
+  getAll: async () => {
+    try {
+      const response = await client.get("/showtime");
+      return response.data?.data ?? response.data ?? [];
+    } catch {
+      return [];
+    }
   },
-  async getByMovieId(movieId) {
-    const allShowtimes = (await getWithFallback("/showtime")) || [];
-    return allShowtimes.filter((s) => Number(s.movieId) === Number(movieId));
+  getByMovieId: async (movieId) => {
+    try {
+      const response = await client.get(`/showtime/movie/${movieId}`);
+      return response.data?.data ?? response.data ?? [];
+    } catch {
+      return [];
+    }
   },
-  async holdSeats(showtimeId, seatIds) {
-    const response = await client.post("/showtime/lock-seats", { showtimeId, seatIds });
+  getById: async (id) => {
+    const response = await client.get(`/showtime/${id}`);
     return response.data?.data ?? response.data;
   },
-  async cancelHold(showtimeId, seatIds) {
-    const response = await client.post("/showtime/cancel-hold", { showtimeId, seatIds });
+  create: async (data) => {
+    const response = await client.post("/showtime", data);
     return response.data?.data ?? response.data;
   },
+  update: async (id, data) => {
+    const response = await client.put(`/showtime/${id}`, data);
+    return response.data?.data ?? response.data;
+  },
+  delete: async (id) => {
+    await client.delete(`/showtime/${id}`);
+  }
 };

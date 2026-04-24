@@ -16,28 +16,43 @@ namespace sivinh_2122110368.Services
     {
         Task<SeatMapDto?> GetSeatMapAsync(int showtimeId);
         Task<(BookingResultDto? result, string error)> CreateBookingAsync(CreateBookingDto dto, int? userId);
+        Task<bool> MarkAsPaidAsync(string bookingCode);
         Task<BookingResultDto?> GetBookingByCodeAsync(string code);
         Task<List<BookingListDto>> GetUserBookingsAsync(int userId);
         Task<CouponResultDto> ValidateCouponAsync(ValidateCouponDto dto);
         Task<VerifyResultDto> VerifyTicketAsync(string qrData);
+        Task<List<BookingListDto>> GetAllBookingsAsync();
+        Task<bool> DeleteBookingAsync(int bookingId);
     }
 
     public class BookingService : IBookingService
     {
         private readonly CinemaDbContext _db;
+        private readonly IMoMoService _moMo;
         private const string SecretKey = "CinemaMSSecretKey123!";
         private const int HoldMinutes = 10;
 
-        public BookingService(CinemaDbContext db) => _db = db;
+        public BookingService(CinemaDbContext db, IMoMoService moMo)
+        {
+            _db = db;
+            _moMo = moMo;
+        }
 
         // ---- SƠ ĐỒ GHẾ ----
         public async Task<SeatMapDto?> GetSeatMapAsync(int showtimeId)
         {
+            Console.WriteLine($">>> Lấy sơ đồ ghế cho ShowtimeId: {showtimeId}");
             var showtime = await _db.Showtimes
                 .Include(s => s.Movie)
                 .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.ShowtimeId == showtimeId);
-            if (showtime == null) return null;
+            if (showtime == null) 
+            {
+                Console.WriteLine($">>> LỖI: Không tìm thấy ShowtimeId {showtimeId} trong DB");
+                return null;
+            }
+
+            Console.WriteLine($">>> Tìm thấy Showtime cho phim: {showtime.Movie.Title} tại phòng: {showtime.Room.Name}");
 
             // Giải phóng ghế hết hạn HOLD
             await ReleaseExpiredHolds(showtimeId);
@@ -47,12 +62,68 @@ namespace sivinh_2122110368.Services
                 .Where(ss => ss.ShowtimeId == showtimeId)
                 .ToListAsync();
 
+            Console.WriteLine($">>> Số lượng ghế hiện tại trong suất chiếu: {seatStatuses.Count}");
+
+            // NẾU CHƯA CÓ GHẾ -> TỰ ĐỘNG TẠO TỪ DANH SÁCH GHẾ CỦA PHÒNG
+            if (!seatStatuses.Any())
+            {
+                Console.WriteLine($">>> Đang kiểm tra ghế mẫu cho RoomId: {showtime.RoomId}");
+                var roomSeats = await _db.Seats
+                    .Where(s => s.RoomId == showtime.RoomId)
+                    .ToListAsync();
+                
+                // [MASTER AUTO-SEED] Nếu bảng Seats của phòng cũng trống -> Tạo luôn 100 ghế mẫu
+                if (!roomSeats.Any())
+                {
+                    Console.WriteLine($">>> [MASTER AUTO-SEED] Bảng Seats trống. Đang tạo 100 ghế mẫu...");
+                    var seedSeats = new List<Seat>();
+                    char[] rows = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
+                    foreach (var row in rows)
+                    {
+                        for (int col = 1; col <= 10; col++)
+                        {
+                            seedSeats.Add(new Seat
+                            {
+                                RoomId = showtime.RoomId,
+                                RowLabel = row.ToString(),
+                                ColNumber = col,
+                                SeatType = (row == 'E' || row == 'F') ? "VIP" : "NORMAL", // Hàng E, F là VIP
+                                IsActive = true
+                            });
+                        }
+                    }
+                    _db.Seats.AddRange(seedSeats);
+                    await _db.SaveChangesAsync();
+                    roomSeats = seedSeats;
+                }
+                
+                if (roomSeats.Any())
+                {
+                    var newShowtimeSeats = roomSeats.Select(s => new ShowtimeSeat
+                    {
+                        ShowtimeId = showtimeId,
+                        SeatId = s.SeatId,
+                        Status = "AVAILABLE"
+                    }).ToList();
+
+                    _db.ShowtimeSeats.AddRange(newShowtimeSeats);
+                    await _db.SaveChangesAsync();
+
+                    // Load lại sau khi tạo
+                    seatStatuses = await _db.ShowtimeSeats
+                        .Include(ss => ss.Seat)
+                        .Where(ss => ss.ShowtimeId == showtimeId)
+                        .ToListAsync();
+                }
+            }
+
             return new SeatMapDto
             {
                 ShowtimeId = showtimeId,
                 MovieTitle = showtime.Movie.Title,
                 StartTime = showtime.StartTime,
                 RoomName = showtime.Room.Name,
+                MaxColumn = seatStatuses.Any() ? seatStatuses.Max(ss => ss.Seat.ColNumber) : 10,
                 Seats = seatStatuses.Select(ss => new SeatStatusDto
                 {
                     SeatId = ss.SeatId,
@@ -163,9 +234,20 @@ namespace sivinh_2122110368.Services
                     ss.HeldByUserId = userId;
                     ss.HoldExpiresAt = DateTime.UtcNow.AddMinutes(HoldMinutes);
                 }
-                _db.BookingSeats.AddRange(bookingSeats);
+                await _db.BookingSeats.AddRangeAsync(bookingSeats);
                 await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
+
+                // GỌI MOMO NẾU CẦN
+                string? payUrl = null;
+                if (booking.PaymentMethod == "MOMO")
+                {
+                    payUrl = await _moMo.CreatePaymentAsync(
+                        booking.BookingCode,
+                        $"Thanh toán vé xem phim {showtime.Movie.Title}",
+                        booking.TotalAmount
+                    );
+                }
 
                 var result = new BookingResultDto
                 {
@@ -179,6 +261,7 @@ namespace sivinh_2122110368.Services
                     DiscountAmount = discountAmount,
                     PaymentStatus = booking.PaymentStatus,
                     PaymentMethod = booking.PaymentMethod,
+                    PayUrl = payUrl,
                     CreatedAt = booking.CreatedAt,
                     Tickets = bookingSeats.Select(bs => new TicketDto
                     {
@@ -230,6 +313,33 @@ namespace sivinh_2122110368.Services
                     IsUsed = bs.IsUsed
                 }).ToList()
             };
+        }
+
+        public async Task<bool> MarkAsPaidAsync(string bookingCode)
+        {
+            var booking = await _db.Bookings
+                .Include(b => b.BookingSeats)
+                .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
+            if (booking == null) return false;
+
+            booking.PaymentStatus = "SUCCESS";
+
+            // Cập nhật trạng thái ghế vĩnh viễn
+            var showtimeSeats = await _db.ShowtimeSeats
+                .Where(ss => ss.ShowtimeId == booking.ShowtimeId)
+                .ToListAsync();
+
+            var bookedSeatIds = booking.BookingSeats.Select(bs => bs.SeatId).ToList();
+            foreach (var ss in showtimeSeats.Where(ss => bookedSeatIds.Contains(ss.SeatId)))
+            {
+                ss.Status = "BOOKED";
+                ss.HeldByUserId = null;
+                ss.HoldExpiresAt = null;
+            }
+
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<BookingListDto>> GetUserBookingsAsync(int userId)
@@ -308,22 +418,38 @@ namespace sivinh_2122110368.Services
         {
             try
             {
-                // Parse QR: {"bookingId":1,"seatId":1,"showtimeId":1,"hash":"..."}
-                var obj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(qrData);
-                if (obj == null) return new VerifyResultDto { IsValid = false, Message = "QR không hợp lệ" };
+                BookingSeat? bookingSeat = null;
 
-                int bookingId = obj["bookingId"].GetInt32();
-                int seatId = obj["seatId"].GetInt32();
-                string hash = obj["hash"].GetString() ?? "";
+                // THỰC HIỆN PARSE JSON NẾU CÓ THỂ
+                if (qrData.Trim().StartsWith("{"))
+                {
+                    var obj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(qrData);
+                    if (obj != null && obj.TryGetValue("bookingId", out var bId) && obj.TryGetValue("seatId", out var sId))
+                    {
+                        int bookingId = bId.GetInt32();
+                        int seatId = sId.GetInt32();
+                        string hash = obj.TryGetValue("hash", out var h) ? h.GetString() ?? "" : "";
 
-                // Kiểm tra hash
-                if (GenerateHash(bookingId, seatId) != hash)
-                    return new VerifyResultDto { IsValid = false, Message = "KHÔNG HỢP LỆ - QR bị giả mạo" };
+                        // Kiểm tra hash bảo mật
+                        if (GenerateHash(bookingId, seatId) != hash)
+                            return new VerifyResultDto { IsValid = false, Message = "KHÔNG HỢP LỆ - QR bị giả mạo" };
 
-                var bookingSeat = await _db.BookingSeats
-                    .Include(bs => bs.Booking).ThenInclude(b => b.Showtime).ThenInclude(s => s.Movie)
-                    .Include(bs => bs.Seat)
-                    .FirstOrDefaultAsync(bs => bs.BookingId == bookingId && bs.SeatId == seatId);
+                        bookingSeat = await _db.BookingSeats
+                            .Include(bs => bs.Booking).ThenInclude(b => b.Showtime).ThenInclude(s => s.Movie)
+                            .Include(bs => bs.Seat)
+                            .FirstOrDefaultAsync(bs => bs.BookingId == bookingId && bs.SeatId == seatId);
+                    }
+                }
+                
+                // NẾU KHÔNG PHẢI JSON HOẶC KHÔNG TÌM THẤY -> THỬ TÌM THEO BOOKING CODE (HỖ TRỢ FRONTEND CŨ)
+                if (bookingSeat == null)
+                {
+                    var code = qrData.Trim();
+                    bookingSeat = await _db.BookingSeats
+                        .Include(bs => bs.Booking).ThenInclude(b => b.Showtime).ThenInclude(s => s.Movie)
+                        .Include(bs => bs.Seat)
+                        .FirstOrDefaultAsync(bs => bs.Booking.BookingCode == code);
+                }
 
                 if (bookingSeat == null)
                     return new VerifyResultDto { IsValid = false, Message = "KHÔNG HỢP LỆ - Vé không tồn tại" };
@@ -352,6 +478,51 @@ namespace sivinh_2122110368.Services
             {
                 return new VerifyResultDto { IsValid = false, Message = "KHÔNG HỢP LỆ - Lỗi đọc QR" };
             }
+        }
+
+        public async Task<List<BookingListDto>> GetAllBookingsAsync()
+        {
+            return await _db.Bookings
+                .Include(b => b.Showtime).ThenInclude(s => s.Movie)
+                .Include(b => b.User)
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => new BookingListDto
+                {
+                    BookingId = b.BookingId,
+                    BookingCode = b.BookingCode,
+                    MovieTitle = b.Showtime.Movie.Title,
+                    ShowtimeStart = b.Showtime.StartTime,
+                    TotalAmount = b.TotalAmount,
+                    PaymentStatus = b.PaymentStatus,
+                    CreatedAt = b.CreatedAt,
+                    UserEmail = b.User != null ? b.User.Email : "Khách vãng lai"
+                }).ToListAsync();
+        }
+
+        public async Task<bool> DeleteBookingAsync(int bookingId)
+        {
+            var booking = await _db.Bookings
+                .Include(b => b.BookingSeats)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null) return false;
+
+            // Giải phóng ghế trước khi xóa booking
+            var showtimeSeats = await _db.ShowtimeSeats
+                .Where(ss => ss.ShowtimeId == booking.ShowtimeId)
+                .ToListAsync();
+
+            var bookedSeatIds = booking.BookingSeats.Select(bs => bs.SeatId).ToList();
+            foreach (var ss in showtimeSeats.Where(ss => bookedSeatIds.Contains(ss.SeatId)))
+            {
+                ss.Status = "AVAILABLE";
+                ss.HeldByUserId = null;
+                ss.HoldExpiresAt = null;
+            }
+
+            _db.Bookings.Remove(booking);
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         // ---- HELPERS ----

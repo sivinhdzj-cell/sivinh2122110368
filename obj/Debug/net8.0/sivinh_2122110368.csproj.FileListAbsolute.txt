@@ -150,3 +150,7 @@ D:\sivinh2122110368-main\obj\Debug\net8.0\refint\sivinh_2122110368.dll
 D:\sivinh2122110368-main\obj\Debug\net8.0\sivinh_2122110368.pdb
 D:\sivinh2122110368-main\obj\Debug\net8.0\sivinh_2122110368.genruntimeconfig.cache
 D:\sivinh2122110368-main\obj\Debug\net8.0\ref\sivinh_2122110368.dll
+D:\sivinh2122110368-main\bin\Debug\net8.0\frontend\package-lock.json
+D:\sivinh2122110368-main\bin\Debug\net8.0\frontend\package.json
+D:\sivinh2122110368-main\bin\Debug\net8.0\frontend\tsconfig.json
+D:\sivinh2122110368-main\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
