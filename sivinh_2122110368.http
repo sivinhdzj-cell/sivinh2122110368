@@ -1,0 +1,6 @@
+@sivinh_2122110368_HostAddress = http://localhost:5269
+
+GET {{sivinh_2122110368_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
