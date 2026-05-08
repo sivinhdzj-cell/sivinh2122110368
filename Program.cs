@@ -8,6 +8,9 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Force HTTP only (tắt HTTPS để tránh SSL certificate error)
+builder.WebHost.UseUrls("http://localhost:5269");
+
 // ---- 1. DATABASE ----
 builder.Services.AddDbContext<CinemaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -16,7 +19,7 @@ builder.Services.AddDbContext<CinemaDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "CinemaMS_SuperSecret_Key_2025!";
+var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "CinemaMS_SuperSecret_2025_Key32Bit!";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -97,4 +100,6 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
+Console.WriteLine("✅ API chạy tại: http://localhost:5269");
+Console.WriteLine("📖 Swagger UI: http://localhost:5269/swagger");
+app.Run();
